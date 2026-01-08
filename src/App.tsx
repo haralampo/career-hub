@@ -16,7 +16,7 @@ function JobCard({job, onDelete} : JobCardProps) {
     const [liked, setLiked] = useState(false);
 
     return (
-        <div>
+        <div className='job-card'>
             <h2>{job.company} {liked ? '❤️' : ''}</h2>
             <p>Role: {job.role}</p>
             <button onClick={() => setLiked(!liked)}>{liked ? 'Unlike' : 'Like'}</button>
@@ -74,12 +74,14 @@ function App() {
             />
             <button onClick={addJob}>Add Job</button>
             
-            {jobs.map(job => 
-                < JobCard 
-                    key={job.id} 
-                    job={job}
-                    onDelete={deleteJob}/>
-            )}
+            <div className='jobs-container'>
+                {jobs.map(job => 
+                    < JobCard 
+                        key={job.id} 
+                        job={job}
+                        onDelete={deleteJob}/>
+                )}
+            </div>
         </div>
     );
 }

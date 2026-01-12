@@ -39,3 +39,8 @@ body {
 p {
   margin: 5px;
 }
+
+.job-card.applied { border-left: 5px solid rgb(126, 133, 252); }
+.job-card.interviewing { border-left: 5px solid orange; }
+.job-card.rejected { border-left: 5px solid rgb(255, 47, 47); }
+.job-card.offered { border-left: 5px solid rgb(21, 204, 21); }

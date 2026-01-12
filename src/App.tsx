@@ -40,7 +40,7 @@ function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
     const [liked, setLiked] = useState(false);
 
     return (
-        <div className='job-card'>
+        <div className={`job-card ${job.status.toLowerCase()}`}>
             <h2>{job.company} {liked ? '❤️' : ''}</h2>
             <p>Role: {job.role}</p>
             <p>Status: {job.status}</p>

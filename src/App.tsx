@@ -17,13 +17,16 @@ They help catch bugs and give autocomplete help.
 interface Job {
     id: number,        // unique identifier
     company: string,   // company name
-    role: string       // job title
+    role: string,      // job title
+    status: string,    // Applied, Interviewing, Rejected
+    date: string       // date applied
 }
 
 // Props that the JobCard component expects to receive
 interface JobCardProps {
     job: Job;                    // a single job object
     onDelete: (id: number) => void; // function that deletes a job by id
+    onUpdateStatus: (id: number, status: string) => void;
 }
 
 /*
@@ -33,13 +36,24 @@ interface JobCardProps {
 This is a CHILD component.
 It receives data (props) from the parent (App).
 */
-function JobCard({ job, onDelete }: JobCardProps) {
+function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
     const [liked, setLiked] = useState(false);
 
     return (
         <div className='job-card'>
             <h2>{job.company} {liked ? '❤️' : ''}</h2>
             <p>Role: {job.role}</p>
+            <p>Status: {job.status}</p>
+            <select 
+                    value={job.status} 
+                    onChange={(e) => onUpdateStatus(job.id, e.target.value)}
+                >
+                <option value="Applied">Applied</option>
+                <option value="Interviewing">Interviewing</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Offered">Offered</option>
+            </select>
+            <p>{job.date}</p>
             
             <button onClick={() => setLiked(!liked)}>
                 {liked ? 'Unlike' : 'Like'}
@@ -74,11 +88,10 @@ function App() {
         localStorage.setItem('my-jobs', JSON.stringify(jobs));
     }, [jobs]); // dependency array
 
-    // Controlled input state for company name
     const [companyName, setCompanyName] = useState("");
-
-    // Controlled input state for role title
     const [roleTitle, setRoleTitle] = useState("");
+    const [searchText, setSearchText] = useState("");
+    const [statusChoice, setStatusChoice] = useState("Applied");
 
     /*
     Adds a new job to the list
@@ -86,15 +99,28 @@ function App() {
     const addJob = () => {
         if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
+        // Source - https://stackoverflow.com/a
+        // Posted by Samuel Meddows, modified by community. See post 'Timeline' for change history
+        // Retrieved 2026-01-12, License - CC BY-SA 4.0
+
+        const date = new Date();
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+        const yyyy = date.getFullYear();
+
+        const today = mm + '/' + dd + '/' + yyyy;
+
         // Create a new Job object
         const newJob: Job = {
             id: Date.now(),      // simple unique ID
             company: companyName,
-            role: roleTitle
+            role: roleTitle,
+            status: statusChoice,
+            date: today
         }
 
         // Update jobs state (NEVER mutate directly)
-        setJobs([...jobs, newJob]);
+        setJobs([newJob, ...jobs]);
 
         setCompanyName("");
         setRoleTitle("");
@@ -107,36 +133,54 @@ function App() {
         setJobs(jobs.filter(job => job.id !== id));
     }
 
+    const updateStatus = (id: number, newStatus: string) => {
+        setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
+    }
+
+    const filteredJobs = jobs.filter(job => job.company.toLowerCase().includes(searchText.toLowerCase()) || job.role.toLowerCase().includes(searchText.toLowerCase()));
+
     return (
         <div>
+            <input 
+                type="text" 
+                placeholder="Search" 
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+            />
+
             <h1>My Career Hub</h1>
 
-            {/* Company Name Input */}
             <input 
                 type="text" 
                 placeholder="Company Name" 
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
             />
-
-            {/* Role Title Input */}
             <input 
                 type="text" 
                 placeholder="Role Title" 
                 value={roleTitle}
                 onChange={(e) => setRoleTitle(e.target.value)}
             />
+            <select className='select-form' value={statusChoice} 
+                    onChange={(e) => setStatusChoice(e.target.value)}>
+                <option value="Applied">Applied</option>
+                <option value="Interviewing">Interviewing</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Offered">Offered</option>
+            </select>
             <button onClick={addJob}>Add Job</button>
             
             <div className='jobs-container'>
                 {/*Renders a JobCard for each job*/}
-                {jobs.map(job => 
+                {filteredJobs.length === 0 ? "No results found" : filteredJobs.map(job => 
                     <JobCard 
                         key={job.id}     // Required by React for lists
                         job={job}        // Pass job data
                         onDelete={deleteJob} // Pass delete function
-                    />
-                )}
+                        onUpdateStatus={updateStatus}
+                    />)
+                }
             </div>
         </div>
     );

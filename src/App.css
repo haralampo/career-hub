@@ -35,3 +35,7 @@ body {
   min-height: 150px;
   color: #213547;
 }
+
+p {
+  margin: 5px;
+}

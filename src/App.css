@@ -43,6 +43,12 @@ body {
   margin: 5px;
 }
 
+.right-nav {
+  display: flex;
+  align-items: center; /* Vertically centers the search, select, and checkbox */
+  gap: 8px;
+}
+
 .search-bar,
 .select-status {
   font-size: 14px;
@@ -57,6 +63,24 @@ body {
 
 .search-bar:focus {
   width: 200px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center; /* This vertically centers the items */
+  gap: 5px;            /* Adds a nice space between the box and text */
+}
+
+.filter-group input[type="checkbox"] {
+  cursor: pointer;
+  margin: 0;           /* Removes default browser margins that cause jumps */
+  width: 16px;         /* Optional: makes it a bit more readable */
+  height: 16px;
+}
+
+.filter-group label {
+  cursor: pointer;
+  user-select: none;   /* Prevents text highlighting when clicking fast */
 }
 
 form {

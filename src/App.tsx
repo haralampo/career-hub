@@ -18,7 +18,8 @@ interface Job {
     company: string,   // company name
     role: string,      // job title
     status: string,    // Applied, Interviewing, Rejected
-    date: string       // date applied
+    date: string,      // date applied
+    liked: boolean     // Liked or Unliked
 }
 
 // Props that the JobCard component expects to receive
@@ -26,6 +27,7 @@ interface JobCardProps {
     job: Job;                    // a single job object
     onDelete: (id: number) => void; // function that deletes a job by id
     onUpdateStatus: (id: number, status: string) => void;
+    onLike: (id: number) => void;
 }
 
 /*
@@ -38,13 +40,12 @@ It receives read-only data (props) from the parent (App).
 
 // onDelete == deleteJob() function in App()
 // onUpdateState == updateStatus() function in App()
-function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
-    const [liked, setLiked] = useState(false);
+function JobCard({ job, onDelete, onUpdateStatus, onLike }: JobCardProps) {
 
     // Returns UI for individual job card
     return (
         <div className={`job-card ${job.status.toLowerCase()}`}>
-            <h2>{job.company} {liked ? '❤️' : ''}</h2>
+            <h2>{job.company} {job.liked ? '❤️' : ''}</h2>
             <p>Role: {job.role}</p>
             <p>Status: {job.status}</p>
             <select 
@@ -58,8 +59,8 @@ function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
             </select>
             <p>{job.date}</p>
             
-            <button className="btn-like" onClick={() => setLiked(!liked)}>
-                {liked ? 'Unlike' : 'Like'}
+            <button className="btn-like" onClick={() => onLike(job.id)}>
+                {job.liked ? 'Unlike' : 'Like'}
             </button>
 
             <button className="btn-delete" onClick={() => onDelete(job.id)}>
@@ -94,6 +95,7 @@ function App() {
     const [searchText, setSearchText] = useState("");
     const [statusChoice, setStatusChoice] = useState("Applied");
     const [filterStatus, setFilterStatus] = useState("All");
+    const [likedStatus, setLikedStatus] = useState(false);
 
     // Adds new job to `jobs`
     const addJob = (e?: React.FormEvent) => {
@@ -112,7 +114,8 @@ function App() {
             company: companyName,
             role: roleTitle,
             status: statusChoice,
-            date: today
+            date: today,
+            liked: false
         }
 
         // Update `jobs` state (NEVER mutate directly)
@@ -120,6 +123,7 @@ function App() {
 
         setCompanyName("");
         setRoleTitle("");
+        setLikedStatus(false);
     }
 
     // Deletes specific job from `jobs`
@@ -132,9 +136,20 @@ function App() {
         setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
     }
 
+    // Updates liked status of specific job in `jobs`
+    const updateLikedStatus = (id: number) => {
+        setJobs(jobs.map(job => job.id === id ? { ...job, liked: !job.liked} : job));
+    }
+
     // Displays jobs based on search and filter parameters
-    const filteredJobs = jobs.filter(job => (job.company.toLowerCase().includes(searchText.toLowerCase()) || job.role.toLowerCase().includes(searchText.toLowerCase()))
-                                            && (job.status === filterStatus || filterStatus === "All"));
+    const filteredJobs = jobs.filter(job => {
+        const matchesSearch = job.company.toLowerCase().includes(searchText.toLowerCase()) || 
+                            job.role.toLowerCase().includes(searchText.toLowerCase());
+        const matchesStatus = filterStatus === "All" || job.status === filterStatus;
+        const matchesLiked = !likedStatus || job.liked;
+
+        return matchesSearch && matchesStatus && matchesLiked;
+    });
 
     const totalJobs = jobs.length;
     const interviewingCount = jobs.filter(job => job.status.toLowerCase() === "interviewing").length;
@@ -169,6 +184,15 @@ function App() {
                         <option value="Rejected">Rejected</option>
                         <option value="Offered">Offered</option>
                     </select>
+                    <div className="filter-group">
+                        <input 
+                            type="checkbox" 
+                            id="liked-filter" 
+                            checked={likedStatus} 
+                            onChange={(e) => setLikedStatus(e.target.checked)}
+                        />
+                        <label htmlFor="liked-filter">Liked</label>
+                    </div>
                 </div>
             </div>
 
@@ -205,6 +229,7 @@ function App() {
                         job={job}        // Pass job data
                         onDelete={deleteJob} // Pass delete function
                         onUpdateStatus={updateStatus}
+                        onLike={updateLikedStatus}
                     />)
                 }
             </div>

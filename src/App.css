@@ -16,6 +16,13 @@ body {
   text-align: center;
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Forces content to the TOP */
+  min-height: 100vh;
+}
+
 .top-nav {
   display: flex;
   justify-content: space-between;
@@ -36,17 +43,20 @@ body {
   margin: 5px;
 }
 
-.search-bar {
+.search-bar,
+.select-status {
+  font-size: 14px;
   margin: 0; 
+  margin-right: 10px;
   padding: 10px 15px;
   border-radius: 20px;
   border: 1px solid #eee;
   background-color: #fcfcfc;
+  color: rgb(52, 52, 52);
 }
 
 .search-bar:focus {
   width: 200px;
-  outline: none;
 }
 
 form {
@@ -72,6 +82,7 @@ form select {
 
 form input, 
 form select, 
+select,
 .btn-add {
   height: 40px;
   margin: 0;

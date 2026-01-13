@@ -91,6 +91,7 @@ function App() {
     const [roleTitle, setRoleTitle] = useState("");
     const [searchText, setSearchText] = useState("");
     const [statusChoice, setStatusChoice] = useState("Applied");
+    const [filterStatus, setFilterStatus] = useState("All");
 
     /*
     Adds a new job to the list
@@ -137,7 +138,8 @@ function App() {
         setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
     }
 
-    const filteredJobs = jobs.filter(job => job.company.toLowerCase().includes(searchText.toLowerCase()) || job.role.toLowerCase().includes(searchText.toLowerCase()));
+    const filteredJobs = jobs.filter(job => (job.company.toLowerCase().includes(searchText.toLowerCase()) || job.role.toLowerCase().includes(searchText.toLowerCase()))
+                                            && (job.status === filterStatus || filterStatus === "All"));
 
     const totalJobs = jobs.length;
     const interviewingCount = jobs.filter(job => job.status.toLowerCase() === "interviewing").length;
@@ -155,13 +157,23 @@ function App() {
                     <span className='stat-pill'>{rejectedCount} Rejected</span>
                 </header>
                 
-                <input 
-                    type="text" 
-                    placeholder="Search jobs..." 
-                    className='search-bar'
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                />
+                <div className='right-nav'>
+                    <input 
+                        type="text" 
+                        placeholder="Search jobs..." 
+                        className='search-bar'
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                    <select className='select-status' value={filterStatus} 
+                            onChange={(e) => setFilterStatus(e.target.value)}>
+                        <option value="All">All</option>
+                        <option value="Applied">Applied</option>
+                        <option value="Interviewing">Interviewing</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Offered">Offered</option>
+                    </select>
+                </div>
             </div>
 
             <h1>My Career Hub</h1>

@@ -6,6 +6,7 @@ body {
   margin: 0;
   overflow-x: hidden;
   width: auto;
+  background-color: #f4f4f4;
 }
 
 #root {
@@ -13,6 +14,99 @@ body {
   margin: 0;
   padding: 0;
   text-align: center;
+}
+
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  padding: 10px 20px;
+  background: white;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.stat-pill {
+  padding: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: rgb(240, 240, 240);
+  border-radius: 20px;
+  margin: 5px;
+}
+
+.search-bar {
+  margin: 0; 
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: 1px solid #eee;
+  background-color: #fcfcfc;
+}
+
+.search-bar:focus {
+  width: 200px;
+  outline: none;
+}
+
+form {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap; /* Prevents squishing on mobile */
+}
+
+form input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+form select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: rgb(85, 85, 85);
+}
+
+form input, 
+form select, 
+.btn-add {
+  height: 40px;
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Base button style for everyone */
+button {
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin: 5px;
+  transition: all 0.2s ease;
+}
+
+button:focus {
+  outline: none;
+}
+
+button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+/* The Add Job button (Green/Primary) */
+.btn-add {
+  background-color: #3b86b8;
+  color: white;
+  margin-left: 10px;
+}
+
+.btn-add:hover {
+  background-color: #1d5175;
 }
 
 .jobs-container {
@@ -34,6 +128,12 @@ body {
   justify-content: space-between;
   min-height: 150px;
   color: #213547;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
 }
 
 p {
@@ -44,3 +144,34 @@ p {
 .job-card.interviewing { border-left: 5px solid orange; }
 .job-card.rejected { border-left: 5px solid rgb(255, 47, 47); }
 .job-card.offered { border-left: 5px solid rgb(21, 204, 21); }
+
+.job-card select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  background-color: white;
+  color: #444;
+  font-family: inherit;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.job-card select:hover {
+  border-color: #ccc;
+}
+
+/* The Delete button (Danger/Red) */
+.btn-like, .btn-delete {
+  background-color: #efefef;
+  color: rgb(41, 41, 41);
+}
+
+.btn-like:hover {
+  background-color: #c0ebc4;
+  color: rgb(0, 74, 0);
+}
+
+.btn-delete:hover {
+  background-color: #fae0e0;
+  color: #d90429;
+}

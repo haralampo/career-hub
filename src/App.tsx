@@ -55,12 +55,11 @@ function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
             </select>
             <p>{job.date}</p>
             
-            <button onClick={() => setLiked(!liked)}>
+            <button className="btn-like" onClick={() => setLiked(!liked)}>
                 {liked ? 'Unlike' : 'Like'}
             </button>
 
-            {/* Call the delete function passed from the parent */}
-            <button onClick={() => onDelete(job.id)}>
+            <button className="btn-delete" onClick={() => onDelete(job.id)}>
                 Delete
             </button>
         </div>
@@ -96,7 +95,8 @@ function App() {
     /*
     Adds a new job to the list
     */
-    const addJob = () => {
+    const addJob = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
         // Source - https://stackoverflow.com/a
@@ -139,37 +139,56 @@ function App() {
 
     const filteredJobs = jobs.filter(job => job.company.toLowerCase().includes(searchText.toLowerCase()) || job.role.toLowerCase().includes(searchText.toLowerCase()));
 
+    const totalJobs = jobs.length;
+    const interviewingCount = jobs.filter(job => job.status.toLowerCase() === "interviewing").length;
+    const offeredCount = jobs.filter(job => job.status.toLowerCase() === "offered").length;
+    const rejectedCount = jobs.filter(job => job.status.toLowerCase() === "rejected").length;
+
     return (
         <div>
-            <input 
-                type="text" 
-                placeholder="Search" 
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-            />
+            <div className="top-nav">
+                <header className="dashboard">
+                    <span>📊 Dashboard:</span>
+                    <span className='stat-pill'>{totalJobs} Total</span>
+                    <span className='stat-pill'>{interviewingCount} Interviewing</span>
+                    <span className='stat-pill'>{offeredCount} Offered</span>
+                    <span className='stat-pill'>{rejectedCount} Rejected</span>
+                </header>
+                
+                <input 
+                    type="text" 
+                    placeholder="Search jobs..." 
+                    className='search-bar'
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                />
+            </div>
 
             <h1>My Career Hub</h1>
 
-            <input 
-                type="text" 
-                placeholder="Company Name" 
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-            />
-            <input 
-                type="text" 
-                placeholder="Role Title" 
-                value={roleTitle}
-                onChange={(e) => setRoleTitle(e.target.value)}
-            />
-            <select className='select-form' value={statusChoice} 
-                    onChange={(e) => setStatusChoice(e.target.value)}>
-                <option value="Applied">Applied</option>
-                <option value="Interviewing">Interviewing</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Offered">Offered</option>
-            </select>
-            <button onClick={addJob}>Add Job</button>
+
+            <form onSubmit={addJob}>
+                <input 
+                    type="text" 
+                    placeholder="Company Name" 
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                />
+                <input 
+                    type="text" 
+                    placeholder="Role Title" 
+                    value={roleTitle}
+                    onChange={(e) => setRoleTitle(e.target.value)}
+                />
+                <select className='select-form' value={statusChoice} 
+                        onChange={(e) => setStatusChoice(e.target.value)}>
+                    <option value="Applied">Applied</option>
+                    <option value="Interviewing">Interviewing</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Offered">Offered</option>
+                </select>
+                <button className="btn-add">Add Job</button>
+            </form>
             
             <div className='jobs-container'>
                 {/*Renders a JobCard for each job*/}

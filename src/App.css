@@ -25,6 +25,7 @@ body {
 
 .top-nav {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
@@ -35,12 +36,20 @@ body {
 }
 
 .stat-pill {
+  white-space: nowrap;
   padding: 5px;
   padding-left: 10px;
   padding-right: 10px;
   background-color: rgb(240, 240, 240);
   border-radius: 20px;
   margin: 5px;
+}
+
+.dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .right-nav {
@@ -209,4 +218,57 @@ p {
 .btn-delete:hover {
   background-color: #fae0e0;
   color: #d90429;
+}
+
+.ai-advice-box {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8faff;
+    border: 1px solid #e0e7ff;
+    border-radius: 12px;
+
+    display: block;
+    text-align: left;
+    
+    /* The Fixes */
+    max-height: 200px;        /* Limits the height */
+    overflow-y: auto;         /* Adds a scrollbar if content is too long */
+    font-size: 14px;
+    line-height: 1.6;
+    color: #334155;
+    white-space: pre-wrap;    /* Keeps the line breaks from the AI */
+}
+
+/* Make the scrollbar look modern */
+.ai-advice-box::-webkit-scrollbar {
+    width: 6px;
+}
+.ai-advice-box::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.btn-ai {
+    background-color: #6366f1; /* Indigo color to stand out */
+    color: white;
+}
+
+.btn-ai:hover {
+    background-color: #4f46e5;
+}
+
+.btn-ai:disabled {
+    background-color: #a5a6f6;
+    cursor: not-allowed;
+}
+
+.btn-toggle {
+    background: none;
+    border: none;
+    color: #6366f1;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 8px;
+    padding: 0;
 }

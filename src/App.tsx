@@ -4,6 +4,7 @@ import './App.css'
 // useState = lets a component store and update data (state)
 // useEffect = runs code after initial component render/changes (side effects)
 import { useState, useEffect } from 'react';
+import { getJobAdvice } from './openai';
 
 /*
 =====================
@@ -19,7 +20,8 @@ interface Job {
     role: string,      // job title
     status: string,    // Applied, Interviewing, Rejected
     date: string,      // date applied
-    liked: boolean     // Liked or Unliked
+    liked: boolean,    // Liked or Unliked
+    aiPrep?: string;   // Optional field for AI response
 }
 
 // Props that the JobCard component expects to receive
@@ -28,6 +30,7 @@ interface JobCardProps {
     onDelete: (id: number) => void; // function that deletes a job by id
     onUpdateStatus: (id: number, status: string) => void;
     onLike: (id: number) => void;
+    onGenerateAI: (id: number, role: string, company: string) => void;
 }
 
 /*
@@ -40,7 +43,15 @@ It receives read-only data (props) from the parent (App).
 
 // onDelete == deleteJob() function in App()
 // onUpdateState == updateStatus() function in App()
-function JobCard({ job, onDelete, onUpdateStatus, onLike }: JobCardProps) {
+function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI } : JobCardProps) {
+    const [loading, setLoading] = useState(false);
+    const [showAdvice, setShowAdvice] = useState(true);
+
+    const handleAI = async () => {
+        setLoading(true);
+        await onGenerateAI(job.id, job.role, job.company);
+        setLoading(false);
+    };
 
     // Returns UI for individual job card
     return (
@@ -66,6 +77,28 @@ function JobCard({ job, onDelete, onUpdateStatus, onLike }: JobCardProps) {
             <button className="btn-delete" onClick={() => onDelete(job.id)}>
                 Delete
             </button>
+
+            <button 
+                className="btn-ai" 
+                onClick={handleAI} 
+                disabled={loading}
+            >
+                {loading ? "Thinking..." : "✨ Get Prep"}
+            </button>
+
+            {job.aiPrep && (
+                <>
+                    <button onClick={() => setShowAdvice(!showAdvice)} className="btn-toggle">
+                        {showAdvice ? "Hide Prep" : "Show Prep"}
+                    </button>
+                    
+                    {showAdvice && (
+                        <div className="ai-advice-box">
+                            {job.aiPrep}
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     )
 }
@@ -140,6 +173,17 @@ function App() {
     const updateLikedStatus = (id: number) => {
         setJobs(jobs.map(job => job.id === id ? { ...job, liked: !job.liked} : job));
     }
+
+    const generateAIPrep = async (id: number, role: string, company: string) => {
+    const advice = await getJobAdvice(role, company);
+    
+    // Ensure advice is a string so TypeScript doesn't complain
+    const safeAdvice = advice ? advice.trim() : "No advice available.";
+
+    setJobs(prevJobs => prevJobs.map(job => 
+        job.id === id ? { ...job, aiPrep: safeAdvice } : job
+    ));
+};
 
     // Displays jobs based on search and filter parameters
     const filteredJobs = jobs.filter(job => {
@@ -230,6 +274,7 @@ function App() {
                         onDelete={deleteJob} // Pass delete function
                         onUpdateStatus={updateStatus}
                         onLike={updateLikedStatus}
+                        onGenerateAI={generateAIPrep}
                     />)
                 }
             </div>

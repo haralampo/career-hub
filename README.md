@@ -71,3 +71,7 @@ export default defineConfig([
   },
 ])
 ```
+
+## Credits & Attributions
+
+**Date Formatting Logic:** Based on a [Stack Overflow solution](https://stackoverflow.com/a/...) by [Samuel Meddows](https://stackoverflow.com/users/...), licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

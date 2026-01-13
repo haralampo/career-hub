@@ -13,7 +13,6 @@ Interfaces describe the SHAPE of objects.
 They help catch bugs and give autocomplete help.
 */
 
-// A Job object must have these properties
 interface Job {
     id: number,        // unique identifier
     company: string,   // company name
@@ -34,11 +33,15 @@ interface JobCardProps {
  JobCard Component
 =====================
 This is a CHILD component.
-It receives data (props) from the parent (App).
+It receives read-only data (props) from the parent (App).
 */
+
+// onDelete == deleteJob() function in App()
+// onUpdateState == updateStatus() function in App()
 function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
     const [liked, setLiked] = useState(false);
 
+    // Returns UI for individual job card
     return (
         <div className={`job-card ${job.status.toLowerCase()}`}>
             <h2>{job.company} {liked ? '❤️' : ''}</h2>
@@ -72,43 +75,35 @@ function JobCard({ job, onDelete, onUpdateStatus }: JobCardProps) {
 =====================
 This holds the main application state.
 */
+
 function App() {
+    // Initialize `jobs` array
     const [jobs, setJobs] = useState<Job[]>(() => {
         const savedJobs = localStorage.getItem('my-jobs');
         return savedJobs ? JSON.parse(savedJobs) : [];
     });
 
-    /*
-    useEffect:
-    - Runs whenever `jobs` changes
-    - Saves the jobs array to localStorage
-    */
+    // Runs whenever `jobs` changes
     useEffect(() => {
         localStorage.setItem('my-jobs', JSON.stringify(jobs));
     }, [jobs]); // dependency array
 
+    // States
     const [companyName, setCompanyName] = useState("");
     const [roleTitle, setRoleTitle] = useState("");
     const [searchText, setSearchText] = useState("");
     const [statusChoice, setStatusChoice] = useState("Applied");
     const [filterStatus, setFilterStatus] = useState("All");
 
-    /*
-    Adds a new job to the list
-    */
+    // Adds new job to `jobs`
     const addJob = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
-        // Source - https://stackoverflow.com/a
-        // Posted by Samuel Meddows, modified by community. See post 'Timeline' for change history
-        // Retrieved 2026-01-12, License - CC BY-SA 4.0
-
         const date = new Date();
         const dd = String(date.getDate()).padStart(2, '0');
-        const mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+        const mm = String(date.getMonth() + 1).padStart(2, '0'); // January is 0
         const yyyy = date.getFullYear();
-
         const today = mm + '/' + dd + '/' + yyyy;
 
         // Create a new Job object
@@ -120,24 +115,24 @@ function App() {
             date: today
         }
 
-        // Update jobs state (NEVER mutate directly)
+        // Update `jobs` state (NEVER mutate directly)
         setJobs([newJob, ...jobs]);
 
         setCompanyName("");
         setRoleTitle("");
     }
 
-    /*
-    Deletes a job by filtering it out
-    */
+    // Deletes specific job from `jobs`
     const deleteJob = (id: number) => {
         setJobs(jobs.filter(job => job.id !== id));
     }
 
+    // Updates application status of specific job in `jobs`
     const updateStatus = (id: number, newStatus: string) => {
         setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
     }
 
+    // Displays jobs based on search and filter parameters
     const filteredJobs = jobs.filter(job => (job.company.toLowerCase().includes(searchText.toLowerCase()) || job.role.toLowerCase().includes(searchText.toLowerCase()))
                                             && (job.status === filterStatus || filterStatus === "All"));
 
@@ -146,6 +141,7 @@ function App() {
     const offeredCount = jobs.filter(job => job.status.toLowerCase() === "offered").length;
     const rejectedCount = jobs.filter(job => job.status.toLowerCase() === "rejected").length;
 
+    // Returns UI for entire App()
     return (
         <div>
             <div className="top-nav">
@@ -177,7 +173,6 @@ function App() {
             </div>
 
             <h1>My Career Hub</h1>
-
 
             <form onSubmit={addJob}>
                 <input 

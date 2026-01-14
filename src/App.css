@@ -153,6 +153,45 @@ button:focus-visible {
   background-color: #1d5175;
 }
 
+.btn-reset {
+  background-color: transparent;
+  color: #999;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.btn-reset:hover {
+  background-color: #fee2e2; /* light red */
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.success-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 12px 24px;
+  border-radius: 50px;
+  border: 1px solid #bbf7d0;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  
+  animation: slideUpDown 3s ease-in-out forwards;
+}
+
+@keyframes slideUpDown {
+  0% { opacity: 0; bottom: 0px; }
+  15% { opacity: 1; bottom: 30px; }
+  85% { opacity: 1; bottom: 30px; }
+  100% { opacity: 0; bottom: 0px; }
+}
+
 form input[type="date"] {
   padding: 8px;
   border: 1px solid #ddd;

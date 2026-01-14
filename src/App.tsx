@@ -143,6 +143,7 @@ function App() {
     const [appliedDate, setAppliedDate] = useState(() => {
         return new Date().toISOString().split('T')[0];
     });
+    const [showSuccess, setShowSuccess] = useState(false);
 
     // Adds new job to `jobs`
     const addJob = (e?: React.FormEvent) => {
@@ -159,6 +160,9 @@ function App() {
         }
 
         setJobs([newJob, ...jobs]);
+
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
 
         // Reset fields
         setCompanyName("");
@@ -180,6 +184,13 @@ function App() {
     const updateLikedStatus = (id: number) => {
         setJobs(jobs.map(job => job.id === id ? { ...job, liked: !job.liked} : job));
     }
+
+    const resetDashboard = () => {
+        if (window.confirm("Are you sure? This will delete all saved jobs forever.")) {
+            setJobs([]);
+            localStorage.removeItem('my-jobs');
+        }
+    };
 
     const generateAIPrep = async (id: number, role: string, company: string) => {
     const advice = await getJobAdvice(role, company);
@@ -278,6 +289,12 @@ function App() {
                 </select>
                 <button className="btn-add">Add Job</button>
             </form>
+
+            {showSuccess && (
+                <div className="success-toast">
+                    ✅ Job added!
+                </div>
+            )}
             
             <div className='jobs-container'>
                 {/*Renders a JobCard for each job*/}
@@ -292,6 +309,12 @@ function App() {
                     />)
                 }
             </div>
+
+            <footer>
+                <button type="button" className="btn-reset" onClick={resetDashboard}>
+                    Reset Dashboard
+                </button>
+            </footer>
         </div>
     );
 }

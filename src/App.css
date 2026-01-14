@@ -153,12 +153,24 @@ button:focus-visible {
   background-color: #1d5175;
 }
 
+form input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  color: #555;
+  height: 40px;
+}
+
 .jobs-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
   gap: 20px;
   padding: 20px;
   width: 100%;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .job-card {
@@ -227,8 +239,12 @@ p {
     border: 1px solid #e0e7ff;
     border-radius: 12px;
 
-    display: block;
     text-align: left;
+    white-space: pre-line; 
+    
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     
     /* The Fixes */
     max-height: 200px;        /* Limits the height */

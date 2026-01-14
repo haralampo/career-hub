@@ -13,7 +13,9 @@ export async function getJobAdvice(role: string, company: string): Promise<strin
       messages: [
         { 
           role: "system", 
-          content: `You are an expert recruiter. Format your response exactly like this:
+          content: `IMPORTANT: Do not use any leading spaces, tabs, or indentation. 
+          Start every line exactly at the left margin. 
+          You are an expert recruiter. Format your response exactly like this:
           
           QUESTIONS:
           1. [Question 1]

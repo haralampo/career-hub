@@ -33,6 +33,17 @@ interface JobCardProps {
     onGenerateAI: (id: number, role: string, company: string) => void;
 }
 
+const formatDateDisplay = (dateString: string) => {
+    if (!dateString) return "";
+    // The 'options' object lets you customize exactly how the date looks
+    const options: Intl.DateTimeFormatOptions = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+};
+
 /*
 =====================
  JobCard Component
@@ -45,7 +56,7 @@ It receives read-only data (props) from the parent (App).
 // onUpdateState == updateStatus() function in App()
 function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI } : JobCardProps) {
     const [loading, setLoading] = useState(false);
-    const [showAdvice, setShowAdvice] = useState(true);
+    const [showAdvice, setShowAdvice] = useState(false);
 
     const handleAI = async () => {
         setLoading(true);
@@ -68,7 +79,7 @@ function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI } : JobCa
                 <option value="Rejected">Rejected</option>
                 <option value="Offered">Offered</option>
             </select>
-            <p>{job.date}</p>
+            <p className="job-date">{formatDateDisplay(job.date)}</p>
             
             <button className="btn-like" onClick={() => onLike(job.id)}>
                 {job.liked ? 'Unlike' : 'Like'}
@@ -129,34 +140,30 @@ function App() {
     const [statusChoice, setStatusChoice] = useState("Applied");
     const [filterStatus, setFilterStatus] = useState("All");
     const [likedStatus, setLikedStatus] = useState(false);
+    const [appliedDate, setAppliedDate] = useState(() => {
+        return new Date().toISOString().split('T')[0];
+    });
 
     // Adds new job to `jobs`
     const addJob = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
-        const date = new Date();
-        const dd = String(date.getDate()).padStart(2, '0');
-        const mm = String(date.getMonth() + 1).padStart(2, '0'); // January is 0
-        const yyyy = date.getFullYear();
-        const today = mm + '/' + dd + '/' + yyyy;
-
-        // Create a new Job object
         const newJob: Job = {
-            id: Date.now(),      // simple unique ID
+            id: Date.now(),
             company: companyName,
             role: roleTitle,
             status: statusChoice,
-            date: today,
+            date: appliedDate, // Use the selected date
             liked: false
         }
 
-        // Update `jobs` state (NEVER mutate directly)
         setJobs([newJob, ...jobs]);
 
+        // Reset fields
         setCompanyName("");
         setRoleTitle("");
-        setLikedStatus(false);
+        setAppliedDate(new Date().toISOString().split('T')[0]);
     }
 
     // Deletes specific job from `jobs`
@@ -193,6 +200,8 @@ function App() {
         const matchesLiked = !likedStatus || job.liked;
 
         return matchesSearch && matchesStatus && matchesLiked;
+    }).sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
     const totalJobs = jobs.length;
@@ -254,6 +263,11 @@ function App() {
                     placeholder="Role Title" 
                     value={roleTitle}
                     onChange={(e) => setRoleTitle(e.target.value)}
+                />
+                <input 
+                    type="date"
+                    value={appliedDate}
+                    onChange={(e) => setAppliedDate(e.target.value)}
                 />
                 <select className='select-form' value={statusChoice} 
                         onChange={(e) => setStatusChoice(e.target.value)}>

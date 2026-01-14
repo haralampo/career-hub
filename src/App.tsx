@@ -289,26 +289,31 @@ function App() {
                 </select>
                 <button className="btn-add">Add Job</button>
             </form>
+            
+            <div className='jobs-container'>
+                {jobs.length === 0 ? (
+                    <div className="empty-state">🚀 No jobs tracked yet. Time to apply!</div>
+                ) : filteredJobs.length === 0 ? (
+                    <div className="empty-state">🔍 No results found matching your search.</div>
+                ) : (
+                    filteredJobs.map(job => (
+                        <JobCard 
+                            key={job.id}
+                            job={job}
+                            onDelete={deleteJob}
+                            onUpdateStatus={updateStatus}
+                            onLike={updateLikedStatus}
+                            onGenerateAI={generateAIPrep}
+                        />
+                    ))
+                )}
+            </div>
 
             {showSuccess && (
                 <div className="success-toast">
                     ✅ Job added!
                 </div>
             )}
-            
-            <div className='jobs-container'>
-                {/*Renders a JobCard for each job*/}
-                {filteredJobs.length === 0 ? "No results found" : filteredJobs.map(job => 
-                    <JobCard 
-                        key={job.id}     // Required by React for lists
-                        job={job}        // Pass job data
-                        onDelete={deleteJob} // Pass delete function
-                        onUpdateStatus={updateStatus}
-                        onLike={updateLikedStatus}
-                        onGenerateAI={generateAIPrep}
-                    />)
-                }
-            </div>
 
             <footer>
                 <button type="button" className="btn-reset" onClick={resetDashboard}>

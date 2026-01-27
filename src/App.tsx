@@ -5,34 +5,10 @@ import './App.css'
 // useEffect = runs code after initial component render/changes (side effects)
 import { useState, useEffect } from 'react';
 import { getJobAdvice } from './openai';
+import type { Job, JobStatus, JobCardProps } from "./types";
 
-/*
-=====================
- TypeScript Interfaces
-=====================
-Interfaces describe the SHAPE of objects.
-They help catch bugs and give autocomplete help.
-*/
 
-interface Job {
-  id: number,        // unique identifier
-  company: string,   // company name
-  role: string,      // job title
-  status: string,    // Applied, Interviewing, Rejected
-  date: string,      // date applied
-  liked: boolean,    // Liked or Unliked
-  aiPrep?: string;   // Optional field for AI response
-}
-
-// Props that the JobCard component expects to receive
-interface JobCardProps {
-  job: Job;                    // a single job object
-  onDelete: (id: number) => void; // function that deletes a job by id
-  onUpdateStatus: (id: number, status: string) => void;
-  onLike: (id: number) => void;
-  onGenerateAI: (id: number, role: string, company: string) => void;
-}
-
+// Helper function
 const formatDateDisplay = (dateString: string) => {
   if (!dateString) return "";
   // The 'options' object lets you customize exactly how the date looks
@@ -44,17 +20,11 @@ const formatDateDisplay = (dateString: string) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
-/*
-=====================
- JobCard Component
-=====================
-This is a CHILD component.
-It receives read-only data (props) from the parent (App).
-*/
-
+// Child component
 // onDelete == deleteJob() function in App()
-// onUpdateState == updateStatus() function in App()
+// onUpdateStatus == updateStatus() function in App()
 function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI }: JobCardProps) {
+  // Data owned by and can be changed by component
   const [loading, setLoading] = useState(false);
   const [showAdvice, setShowAdvice] = useState(false);
 
@@ -62,38 +32,43 @@ function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI }: JobCar
     setLoading(true);
     await onGenerateAI(job.id, job.role, job.company);
     setLoading(false);
+    setShowAdvice(true);
   };
 
   // Returns UI for individual job card
   return (
     <div className={`job-card ${job.status.toLowerCase()}`}>
+
+      { /* Title, role, status */ }
       <h2>{job.company} {job.liked ? '❤️' : ''}</h2>
       <p>Role: {job.role}</p>
       <p>Status: {job.status}</p>
-      <select
-        value={job.status}
-        onChange={(e) => onUpdateStatus(job.id, e.target.value)}
-      >
+
+      { /* Select to modify status */ }
+      <select value={job.status}
+        onChange={(e) => onUpdateStatus(job.id, e.target.value as JobStatus)}
+        >
         <option value="Applied">Applied</option>
         <option value="Interviewing">Interviewing</option>
         <option value="Rejected">Rejected</option>
         <option value="Offered">Offered</option>
       </select>
+
+      { /* Date */ }
       <p className="job-date">{formatDateDisplay(job.date)}</p>
 
+      { /* Like, delete, AI buttons */ }
       <button className="btn-like" onClick={() => onLike(job.id)}>
         {job.liked ? 'Unlike' : 'Like'}
       </button>
-
       <button className="btn-delete" onClick={() => onDelete(job.id)}>
         Delete
       </button>
-
       <button
         className="btn-ai"
         onClick={handleAI}
         disabled={loading}
-      >
+        >
         {loading ? "Thinking..." : "✨ Get Prep"}
       </button>
 
@@ -113,6 +88,7 @@ function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI }: JobCar
     </div>
   )
 }
+
 
 /*
 =====================
@@ -137,7 +113,7 @@ function App() {
   const [companyName, setCompanyName] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [statusChoice, setStatusChoice] = useState("Applied");
+  const [statusChoice, setStatusChoice] = useState<JobStatus>("Applied");
   const [filterStatus, setFilterStatus] = useState("All");
   const [likedStatus, setLikedStatus] = useState(false);
   const [appliedDate, setAppliedDate] = useState(() => {
@@ -151,7 +127,7 @@ function App() {
     if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
     const newJob: Job = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       company: companyName,
       role: roleTitle,
       status: statusChoice,
@@ -163,25 +139,25 @@ function App() {
 
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
+    setAppliedDate(new Date().toISOString().split('T')[0]);
 
     // Reset fields
     setCompanyName("");
     setRoleTitle("");
-    setAppliedDate(new Date().toISOString().split('T')[0]);
   }
 
   // Deletes specific job from `jobs`
-  const deleteJob = (id: number) => {
+  const deleteJob = (id: string) => {
     setJobs(jobs.filter(job => job.id !== id));
   }
 
   // Updates application status of specific job in `jobs`
-  const updateStatus = (id: number, newStatus: string) => {
+  const updateStatus = (id: string, newStatus: JobStatus) => {
     setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
   }
 
   // Updates liked status of specific job in `jobs`
-  const updateLikedStatus = (id: number) => {
+  const updateLikedStatus = (id: string) => {
     setJobs(jobs.map(job => job.id === id ? { ...job, liked: !job.liked } : job));
   }
 
@@ -192,7 +168,7 @@ function App() {
     }
   };
 
-  const generateAIPrep = async (id: number, role: string, company: string) => {
+  const generateAIPrep = async (id: string, role: string, company: string) => {
     const advice = await getJobAdvice(role, company);
 
     // Ensure advice is a string so TypeScript doesn't complain
@@ -281,7 +257,7 @@ function App() {
           onChange={(e) => setAppliedDate(e.target.value)}
         />
         <select className='select-form' value={statusChoice}
-          onChange={(e) => setStatusChoice(e.target.value)}>
+          onChange={(e) => setStatusChoice(e.target.value as JobStatus)}>
           <option value="Applied">Applied</option>
           <option value="Interviewing">Interviewing</option>
           <option value="Rejected">Rejected</option>

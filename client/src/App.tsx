@@ -98,16 +98,23 @@ This holds the main application state.
 */
 
 function App() {
-  // Initialize `jobs` array
-  const [jobs, setJobs] = useState<Job[]>(() => {
-    const savedJobs = localStorage.getItem('my-jobs');
-    return savedJobs ? JSON.parse(savedJobs) : [];
-  });
+  // Initialize 'jobs' as empty array
+  const [jobs, setJobs] = useState<Job[]>([]);
 
-  // Runs whenever `jobs` changes
+  // Fetch jobs from Express when app starts
   useEffect(() => {
-    localStorage.setItem('my-jobs', JSON.stringify(jobs));
-  }, [jobs]); // dependency array
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/jobs');
+        const data = await response.json();
+        setJobs(data);
+      } 
+      catch (error) {
+        console.error("Failed to load jobs from server:", error);
+      }
+    };
+    fetchJobs();
+  }, []);
 
   // States
   const [companyName, setCompanyName] = useState("");
@@ -121,8 +128,8 @@ function App() {
   });
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Adds new job to `jobs`
-  const addJob = (e?: React.FormEvent) => {
+  // Send data to the server
+  const addJob = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
@@ -131,12 +138,19 @@ function App() {
       company: companyName,
       role: roleTitle,
       status: statusChoice,
-      date: appliedDate, // Use the selected date
+      date: appliedDate,
       liked: false
-    }
+    };
 
-    setJobs([newJob, ...jobs]);
+    const response = await fetch('http://localhost:5001/api/jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newJob),
+    });
 
+    const savedJob = await response.json();
+    setJobs([savedJob, ...jobs]); // Update UI with server response
+    
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
     setAppliedDate(new Date().toISOString().split('T')[0]);
@@ -144,7 +158,7 @@ function App() {
     // Reset fields
     setCompanyName("");
     setRoleTitle("");
-  }
+  };
 
   // Deletes specific job from `jobs`
   const deleteJob = (id: string) => {

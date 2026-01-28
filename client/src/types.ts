@@ -1,6 +1,7 @@
 // Interfaces describe the shape of objects
 // They help catch bugs and give autocomplete help
 export type JobStatus = "Applied" | "Interviewing" | "Rejected" | "Offered";
+
 export interface Job {
   id: string;
   company: string;

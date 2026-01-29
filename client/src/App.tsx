@@ -4,7 +4,6 @@ import './App.css'
 // useState = lets a component store and update data (state)
 // useEffect = runs code after initial component render/changes (side effects)
 import { useState, useEffect } from 'react';
-import { getJobAdvice } from './openai';
 import type { Job, JobStatus, JobCardProps } from "./types";
 
 
@@ -128,13 +127,11 @@ function App() {
   });
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Send data to the server
   const addJob = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
-    const newJob: Job = {
-      id: crypto.randomUUID(),
+    const newJobData = {
       company: companyName,
       role: roleTitle,
       status: statusChoice,
@@ -142,22 +139,34 @@ function App() {
       liked: false
     };
 
-    const response = await fetch('http://localhost:5001/api/jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newJob),
-    });
+    try {
+      // Send to Express server
+      const response = await fetch('http://localhost:5001/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newJobData),
+      });
 
-    const savedJob = await response.json();
-    setJobs([savedJob, ...jobs]); // Update UI with server response
-    
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-    setAppliedDate(new Date().toISOString().split('T')[0]);
+      if (!response.ok) throw new Error('Failed to save job');
 
-    // Reset fields
-    setCompanyName("");
-    setRoleTitle("");
+      // Receive job from server (it now has an ID)
+      const savedJob: Job = await response.json();
+      
+      // Update UI state
+      setJobs([savedJob, ...jobs]); 
+      
+      // Reset fields
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      setAppliedDate(new Date().toISOString().split('T')[0]);
+      setCompanyName("");
+      setRoleTitle("");
+      
+    } 
+    catch (error) {
+      console.error("Error connecting to server:", error);
+      alert("Could not save job. Is the server running on port 5001?");
+    }
   };
 
   // Deletes specific job from `jobs`
@@ -183,14 +192,25 @@ function App() {
   };
 
   const generateAIPrep = async (id: string, role: string, company: string) => {
-    const advice = await getJobAdvice(role, company);
+    try {
+      const response = await fetch('http://localhost:5001/api/prep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role, company })
+      });
 
-    // Ensure advice is a string so TypeScript doesn't complain
-    const safeAdvice = advice ? advice.trim() : "No advice available.";
+      if (!response.ok) throw new Error('Failed to fetch prep');
 
-    setJobs(prevJobs => prevJobs.map(job =>
-      job.id === id ? { ...job, aiPrep: safeAdvice } : job
-    ));
+      const data = await response.json();
+
+      // This uses the 'id' to find the right card and the 'data' to fill it
+      setJobs(prevJobs => prevJobs.map(job => 
+        job.id === id ? { ...job, aiPrep: data.advice } : job
+      ));
+    } 
+    catch (error) {
+      console.error("Error getting AI prep:", error);
+    }
   };
 
   // Displays jobs based on search and filter parameters

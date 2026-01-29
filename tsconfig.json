@@ -3,5 +3,14 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "esModuleInterop": true,    // This is the "magic" fix for your error
+    "allowSyntheticDefaultImports": true, // This helps with the dotenv error
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "."
+  }
 }

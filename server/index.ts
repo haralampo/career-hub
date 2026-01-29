@@ -1,6 +1,9 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { Job } from '../client/src/types';
+import { Job, JobStatus } from '../client/src/types';
+import OpenAI from "openai";
+import dotenv from "dotenv";
+dotenv.config(); // Loads the key from server/.env
 
 const app = express();
 const PORT = 5001; // Use 5001 to avoid conflict with Vite (3000/5173)
@@ -9,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // In-memory "Database"
-let jobs: Job[] = []; 
+let jobs: Job[] = [];
 
 // GET: Fetch all jobs
 app.get('/api/jobs', (req: Request, res: Response) => {
@@ -31,4 +34,32 @@ app.delete('/api/jobs/:id', (req: Request, res: Response) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Server ready at http://localhost:${PORT}`);
+});
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.post('/api/prep', async (req, res) => {
+  const { role, company } = req.body;
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system", 
+        content: `IMPORTANT: Do not use any leading spaces, tabs, or indentation. 
+        Start every line exactly at the left margin. 
+        You are an expert recruiter. Format your response exactly like this:
+          
+        QUESTIONS:
+        1. [Question 1]
+        2. [Question 2]
+        3. [Question 3]
+        
+        PRO-TIP:
+        [One sentence tip]`},
+      { 
+        role: "user", content: `Job: ${role} at ${company}` 
+      }
+    ]
+  });
+  res.json({ advice: completion.choices[0].message.content });
 });

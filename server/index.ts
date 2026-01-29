@@ -14,16 +14,33 @@ app.use(express.json());
 // In-memory "Database"
 let jobs: Job[] = [];
 
-// GET: Fetch all jobs
-app.get('/api/jobs', (req: Request, res: Response) => {
-  res.json(jobs);
-});
-
 // POST: Add a new job (matches 'addJob' logic in App.tsx)
 app.post('/api/jobs', (req: Request, res: Response) => {
   const newJob = { ...req.body, id: Date.now().toString() };
   jobs.push(newJob);
   res.status(201).json(newJob);
+});
+
+// GET: Fetch all jobs
+app.get('/api/jobs', (req: Request, res: Response) => {
+  res.json(jobs);
+});
+
+// PATCH: Update a specific job (Status or Liked status)
+app.patch('/api/jobs/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updates = req.body; // This contains { status: '...' } or { liked: true }
+
+  const jobIndex = jobs.findIndex(j => j.id === id);
+
+  if (jobIndex === -1) {
+    return res.status(404).json({ error: "Job not found" });
+  }
+
+  // Merge existing data with updates
+  jobs[jobIndex] = { ...jobs[jobIndex], ...updates };
+
+  res.json(jobs[jobIndex]);
 });
 
 // DELETE: Remove a job (matches 'deleteJob' in App.tsx)

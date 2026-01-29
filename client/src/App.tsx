@@ -170,19 +170,58 @@ function App() {
   };
 
   // Deletes specific job from `jobs`
-  const deleteJob = (id: string) => {
-    setJobs(jobs.filter(job => job.id !== id));
-  }
+  const deleteJob = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setJobs(jobs.filter(job => job.id !== id));
+      }
+    } 
+    catch (error) {
+      console.error("Failed to delete job:", error);
+    }
+  };
 
   // Updates application status of specific job in `jobs`
-  const updateStatus = (id: string, newStatus: JobStatus) => {
-    setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
-  }
+  const updateStatus = async (id: string, newStatus: JobStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
+      }
+    } 
+    catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
 
   // Updates liked status of specific job in `jobs`
-  const updateLikedStatus = (id: string) => {
-    setJobs(jobs.map(job => job.id === id ? { ...job, liked: !job.liked } : job));
-  }
+  const updateLikedStatus = async (id: string) => {
+    const jobToUpdate = jobs.find(j => j.id === id);
+    if (!jobToUpdate) return;
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ liked: !jobToUpdate.liked }),
+      });
+
+      if (response.ok) {
+        setJobs(jobs.map(job => job.id === id ? { ...job, liked: !job.liked } : job));
+      }
+    } catch (error) {
+      console.error("Failed to update liked status:", error);
+    }
+  };
 
   const resetDashboard = () => {
     if (window.confirm("Are you sure? This will delete all saved jobs forever.")) {

@@ -226,7 +226,6 @@ function App() {
   const resetDashboard = () => {
     if (window.confirm("Are you sure? This will delete all saved jobs forever.")) {
       setJobs([]);
-      localStorage.removeItem('my-jobs');
     }
   };
 

@@ -1,21 +1,24 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { Job, JobStatus } from '../client/src/types';
 import OpenAI from "openai";
 import dotenv from "dotenv";
-dotenv.config(); // Loads the key from server/.env
+import { PrismaClient } from '@prisma/client';
+
+dotenv.config();
 
 const app = express();
-const PORT = 5001; // Use 5001 to avoid conflict with Vite (3000/5173)
+const PORT = 5001;
+const prisma = new PrismaClient(); // Initialize Prisma
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
+// --- AI PREP ROUTE ---
 app.post('/api/prep', async (req, res) => {
   try {
-    const { role, company } = req.body;
+    const { role, company, id } = req.body; 
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -31,56 +34,81 @@ app.post('/api/prep', async (req, res) => {
           3. [Question 3]
           
           PRO-TIP:
-          [One sentence tip]`},
-        { 
-          role: "user", content: `Job: ${role} at ${company}` 
-        }
+          [One sentence tip]`
+        },
+        { role: "user", content: `Job: ${role} at ${company}` }
       ]
     });
-    res.json({ advice: completion.choices[0].message.content });
-  }
-  catch (error) {
+
+    const advice = completion.choices[0].message.content;
+
+    // Save advice to DB so it persists on refresh
+    if (id) {
+      await prisma.job.update({
+        where: { id: id },
+        data: { aiPrep: advice }
+      });
+    }
+
+    res.json({ advice });
+  } catch (error) {
     console.error("OpenAI Error:", error);
-    res.status(500).json({ error: "AI failed to generate advice" });
+    res.status(500).json({ error: "AI failed" });
   }
 });
 
-// In-memory "Database"
-let jobs: Job[] = [];
+// --- DATABASE ROUTES ---
 
-// POST: Add a new job (matches 'addJob' logic in App.tsx)
-app.post('/api/jobs', (req: Request, res: Response) => {
-  const newJob = { ...req.body, id: Date.now().toString() };
-  jobs.push(newJob);
-  res.status(201).json(newJob);
-});
-
-// GET: Fetch all jobs
-app.get('/api/jobs', (req: Request, res: Response) => {
-  res.json(jobs);
-});
-
-// PATCH: Update a specific job (Status or Liked status)
-app.patch('/api/jobs/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const updates = req.body; // This contains { status: '...' } or { liked: true }
-
-  const jobIndex = jobs.findIndex(j => j.id === id);
-
-  if (jobIndex === -1) {
-    return res.status(404).json({ error: "Job not found" });
+// GET: Fetch all jobs from Neon
+app.get('/api/jobs', async (req: Request, res: Response) => {
+  try {
+    const jobs = await prisma.job.findMany({ 
+      orderBy: { createdAt: 'desc' } 
+    });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch jobs" });
   }
-
-  // Merge existing data with updates
-  jobs[jobIndex] = { ...jobs[jobIndex], ...updates };
-
-  res.json(jobs[jobIndex]);
 });
 
-// DELETE: Remove a job (matches 'deleteJob' in App.tsx)
-app.delete('/api/jobs/:id', (req: Request, res: Response) => {
-  jobs = jobs.filter(j => j.id !== req.params.id);
-  res.status(204).send();
+// POST: Add a new job to Neon
+app.post('/api/jobs', async (req: Request, res: Response) => {
+  try {
+    const { company, role, status, date } = req.body;
+    const newJob = await prisma.job.create({ 
+      data: { company, role, status, date } 
+    });
+    res.status(201).json(newJob);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create job" });
+  }
+});
+
+// PATCH: Update a specific job
+app.patch('/api/jobs/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string; // Explicitly cast as string
+    const updatedJob = await prisma.job.update({ 
+      where: { id: id }, // This now satisfies JobWhereUniqueInput
+      data: req.body 
+    });
+    res.json(updatedJob);
+  } catch (error) {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
+// DELETE: Remove a job
+app.delete('/api/jobs/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string; // Explicitly cast as string
+    await prisma.job.delete({ 
+      where: { id: id } 
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "Delete failed" });
+  }
 });
 
 app.listen(PORT, () => {

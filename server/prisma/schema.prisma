@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Job {
@@ -16,6 +17,6 @@ model Job {
   status    String
   date      String
   liked     Boolean  @default(false)
-  aiPrep    String?  @db.Text
+  aiPrep    String?
   createdAt DateTime @default(now())
 }

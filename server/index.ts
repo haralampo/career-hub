@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
-
 const app = express(); // Handles HTTP routes
 const PORT = 5001;
 const prisma = new PrismaClient(); // Serves as translator between TS code + Postgres database

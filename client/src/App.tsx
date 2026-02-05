@@ -6,11 +6,11 @@ import './App.css'
 import { useState, useEffect } from 'react';
 import type { Job, JobStatus, JobCardProps } from "./types";
 
-
 // Helper function
 const formatDateDisplay = (dateString: string) => {
-  if (!dateString) return "";
-  // The 'options' object lets you customize exactly how the date looks
+  if (!dateString) {
+    return "";
+  }
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'short',
@@ -73,7 +73,7 @@ function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI }: JobCar
 
       {job.aiPrep && (
         <>
-          <button onClick={() => setShowAdvice(!showAdvice)} className="btn-toggle">
+          <button onClick={() => setShowAdvice(true)} className="btn-toggle">
             {showAdvice ? "Hide Prep" : "Show Prep"}
           </button>
 
@@ -93,7 +93,7 @@ function JobCard({ job, onDelete, onUpdateStatus, onLike, onGenerateAI }: JobCar
 =====================
  App Component (Parent)
 =====================
-This holds the main application state.
+This holds main application state.
 */
 
 function App() {
@@ -122,17 +122,17 @@ function App() {
   const [statusChoice, setStatusChoice] = useState<JobStatus>("Applied");
   const [filterStatus, setFilterStatus] = useState("All");
   const [likedStatus, setLikedStatus] = useState(false);
-  const [appliedDate, setAppliedDate] = useState(() => {
-    return new Date().toISOString().split('T')[0];
-  });
+  const [appliedDate, setAppliedDate] = useState(() => { return new Date().toISOString().split('T')[0]; });
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // React interacting with Express
+  // Adds job to `jobs`
   const addJob = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+    if (e) e.preventDefault(); // If called by form, do not refresh page
     if (companyName.trim() === "" || roleTitle.trim() === "") return;
 
     const newJobData = {
-      company: companyName,
+      company: companyName, // Set to what is currently written in form
       role: roleTitle,
       status: statusChoice,
       date: appliedDate,
@@ -147,9 +147,11 @@ function App() {
         body: JSON.stringify(newJobData),
       });
 
-      if (!response.ok) throw new Error('Failed to save job');
+      if (!response.ok) {
+        throw new Error('Failed to save job');
+      }
 
-      // Receive job from server (it now has an ID)
+      // Receive job from server (it now has an ID, reference prisma schema)
       const savedJob: Job = await response.json();
       
       // Update UI state
@@ -161,7 +163,6 @@ function App() {
       setAppliedDate(new Date().toISOString().split('T')[0]);
       setCompanyName("");
       setRoleTitle("");
-      
     } 
     catch (error) {
       console.error("Error connecting to server:", error);

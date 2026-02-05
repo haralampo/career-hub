@@ -6,16 +6,16 @@ import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
 
-const app = express();
+const app = express(); // Handles HTTP routes
 const PORT = 5001;
-const prisma = new PrismaClient(); // Initialize Prisma
+const prisma = new PrismaClient(); // Serves as translator between TS code + Postgres database
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors());
 app.use(express.json());
 
 // --- AI PREP ROUTE ---
-app.post('/api/prep', async (req, res) => {
+app.post('/api/prep', async (req: Request, res: Response) => {
   try {
     const { role, company, id } = req.body; 
 
@@ -49,9 +49,10 @@ app.post('/api/prep', async (req, res) => {
         data: { aiPrep: advice }
       });
     }
-
+    // Send data to client as JSON, end request
     res.json({ advice });
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("OpenAI Error:", error);
     res.status(500).json({ error: "AI failed" });
   }
@@ -66,7 +67,8 @@ app.get('/api/jobs', async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' } 
     });
     res.json(jobs);
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
@@ -79,7 +81,8 @@ app.post('/api/jobs', async (req: Request, res: Response) => {
       data: { company, role, status, date } 
     });
     res.status(201).json(newJob);
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({ error: "Failed to create job" });
   }
 });
@@ -89,11 +92,12 @@ app.patch('/api/jobs/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string; // Explicitly cast as string
     const updatedJob = await prisma.job.update({ 
-      where: { id: id }, // This now satisfies JobWhereUniqueInput
+      where: { id: id },
       data: req.body 
     });
     res.json(updatedJob);
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({ error: "Update failed" });
   }
 });
@@ -106,7 +110,8 @@ app.delete('/api/jobs/:id', async (req: Request, res: Response) => {
       where: { id: id } 
     });
     res.status(204).send();
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({ error: "Delete failed" });
   }
 });

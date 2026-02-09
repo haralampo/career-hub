@@ -172,17 +172,19 @@ function App() {
 
   // Deletes specific job from `jobs`
   const deleteJob = async (id: string) => {
-    try {
-      const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
-        method: 'DELETE',
-      });
+    if (window.confirm("Are you sure? This job will be deleted forever.")) {
+      try {
+        const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+          method: 'DELETE',
+        });
 
-      if (response.ok) {
-        setJobs(jobs.filter(job => job.id !== id));
+        if (response.ok) {
+          setJobs(jobs.filter(job => job.id !== id));
+        }
+      } 
+      catch (error) {
+        console.error("Failed to delete job:", error);
       }
-    } 
-    catch (error) {
-      console.error("Failed to delete job:", error);
     }
   };
 

@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { clerkMiddleware, requireAuth, getAuth } from '@clerk/express';
 import cors from 'cors';
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
 const app = express(); // Handles HTTP routes
@@ -60,9 +61,12 @@ app.post('/api/prep', async (req: Request, res: Response) => {
 // --- DATABASE ROUTES ---
 
 // GET: Fetch all jobs from Neon
-app.get('/api/jobs', async (req: Request, res: Response) => {
+app.get('/api/jobs', requireAuth(), async (req: Request, res: Response) => {
+  const { userId } = getAuth(req);
+
   try {
     const jobs = await prisma.job.findMany({ 
+      where: { userId: userId as string },
       orderBy: { createdAt: 'desc' } 
     });
     res.json(jobs);
@@ -73,45 +77,77 @@ app.get('/api/jobs', async (req: Request, res: Response) => {
 });
 
 // POST: Add a new job to Neon
-app.post('/api/jobs', async (req: Request, res: Response) => {
+app.post('/api/jobs', requireAuth(), async (req: Request, res: Response) => {
+  // Get identity from request
+  const auth = getAuth(req);
+  const userId = auth.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "No user ID found in token" });
+  }
+  console.log("Verified User ID:", userId);
+
+  const { company, role, status, date } = req.body;
+  if (!company || !role) {
+    return res.status(400).json({ error: "Company and Role are required" });
+  }
+
   try {
-    const { company, role, status, date } = req.body;
-    const newJob = await prisma.job.create({ 
-      data: { company, role, status, date } 
+    // Save to Prisma with userId
+    const newJob = await prisma.job.create({
+      data: {
+        company,
+        role,
+        status,
+        date,
+        userId: userId
+      },
     });
-    res.status(201).json(newJob);
+
+    res.json(newJob);
   } 
   catch (error) {
-    res.status(500).json({ error: "Failed to create job" });
+    console.error(error);
+    res.status(500).json({ error: "Failed to save job" });
   }
 });
 
 // PATCH: Update a specific job
-app.patch('/api/jobs/:id', async (req: Request, res: Response) => {
+app.patch('/api/jobs/:id', requireAuth(), async (req: Request, res: Response) => {
+  const { userId } = getAuth(req);
+  const id = req.params.id as string;
+
   try {
-    const id = req.params.id as string; // Explicitly cast as string
     const updatedJob = await prisma.job.update({ 
-      where: { id: id },
+      where: { 
+        id: id,
+        userId: userId as string 
+      },
       data: req.body 
     });
     res.json(updatedJob);
   } 
   catch (error) {
-    res.status(500).json({ error: "Update failed" });
+    res.status(500).json({ error: "Update failed or unauthorized" });
   }
 });
 
 // DELETE: Remove a job
-app.delete('/api/jobs/:id', async (req: Request, res: Response) => {
+app.delete('/api/jobs/:id', requireAuth(), async (req: Request, res: Response) => {
+  const { userId } = getAuth(req);
+  const id = req.params.id as string;
+
   try {
-    const id = req.params.id as string; // Explicitly cast as string
     await prisma.job.delete({ 
-      where: { id: id } 
+      where: { 
+        id: id,
+        userId: userId as string 
+      } 
     });
     res.status(204).send();
   } 
   catch (error) {
-    res.status(500).json({ error: "Delete failed" });
+    res.status(500).json({ error: "Delete failed or unauthorized" });
   }
 });
 

@@ -5,6 +5,7 @@ import './App.css'
 // useEffect = runs code after initial component render/changes (side effects)
 import { useState, useEffect } from 'react';
 import type { Job, JobStatus, JobCardProps } from "./types";
+import { useAuth, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 // Helper function
 const formatDateDisplay = (dateString: string) => {
@@ -99,12 +100,27 @@ This holds main application state.
 function App() {
   // Initialize 'jobs' as empty array
   const [jobs, setJobs] = useState<Job[]>([]);
+  const { getToken } = useAuth();
+
+  // Helper function to "see" getToken
+  const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+    const token = await getToken();
+    
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  };
 
   // Fetch jobs from Express when app starts
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/jobs');
+        const response = await authenticatedFetch('http://localhost:5001/api/jobs');
         const data = await response.json();
         setJobs(data);
       } 
@@ -141,7 +157,7 @@ function App() {
 
     try {
       // Send to Express server
-      const response = await fetch('http://localhost:5001/api/jobs', {
+      const response = await authenticatedFetch('http://localhost:5001/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newJobData),
@@ -174,7 +190,7 @@ function App() {
   const deleteJob = async (id: string) => {
     if (window.confirm("Are you sure? This job will be deleted forever.")) {
       try {
-        const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+        const response = await authenticatedFetch(`http://localhost:5001/api/jobs/${id}`, {
           method: 'DELETE',
         });
 
@@ -191,7 +207,7 @@ function App() {
   // Updates application status of specific job in `jobs`
   const updateStatus = async (id: string, newStatus: JobStatus) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+      const response = await authenticatedFetch(`http://localhost:5001/api/jobs/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -212,7 +228,7 @@ function App() {
     if (!jobToUpdate) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/jobs/${id}`, {
+      const response = await authenticatedFetch(`http://localhost:5001/api/jobs/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ liked: !jobToUpdate.liked }),
@@ -234,7 +250,7 @@ function App() {
 
   const generateAIPrep = async (id: string, role: string, company: string) => {
     try {
-      const response = await fetch('http://localhost:5001/api/prep', {
+      const response = await authenticatedFetch('http://localhost:5001/api/prep', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role, company })
@@ -273,43 +289,61 @@ function App() {
 
   // Returns UI for entire App()
   return (
-    <div>
-      <div className="top-nav">
-        <header className="dashboard">
-          <span>📊 Dashboard:</span>
-          <span className='stat-pill'>{totalJobs} Total</span>
-          <span className='stat-pill'>{interviewingCount} Interviewing</span>
-          <span className='stat-pill'>{offeredCount} Offered</span>
-          <span className='stat-pill'>{rejectedCount} Rejected</span>
-        </header>
+    <div className="app-container"> {/* Wrap everything in one parent */}
+    
+      {/* --- AUTH GATE: SIGNED OUT --- */}
+      <SignedOut>
+        <div className="welcome-screen">
+          <h1>🚀 Welcome to Career Hub</h1>
+          <p>Your AI-powered job search command center.</p>
+          <SignInButton mode="modal">
+            <button className="btn-add">Sign In to Get Started</button>
+          </SignInButton>
+        </div>
+      </SignedOut>
 
-        <div className='right-nav'>
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            className='search-bar'
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <select className='select-status' value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}>
-            <option value="All">All</option>
-            <option value="Applied">Applied</option>
-            <option value="Interviewing">Interviewing</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Offered">Offered</option>
-          </select>
-          <div className="filter-group">
+      {/* --- AUTH GATE: SIGNED IN --- */}
+      <SignedIn>
+        <div className="top-nav">
+          <header className="dashboard">
+            <div className="user-profile">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+            <span>📊 Dashboard:</span>
+            <span className='stat-pill'>{totalJobs} Total</span>
+            <span className='stat-pill'>{interviewingCount} Interviewing</span>
+            <span className='stat-pill'>{offeredCount} Offered</span>
+            <span className='stat-pill'>{rejectedCount} Rejected</span>
+          </header>
+
+          <div className='right-nav'>
             <input
-              type="checkbox"
-              id="liked-filter"
-              checked={likedStatus}
-              onChange={(e) => setLikedStatus(e.target.checked)}
+              type="text"
+              placeholder="Search jobs..."
+              className='search-bar'
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
             />
-            <label htmlFor="liked-filter">Liked</label>
+            <select className='select-status' value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}>
+              <option value="All">All</option>
+              <option value="Applied">Applied</option>
+              <option value="Interviewing">Interviewing</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Offered">Offered</option>
+            </select>
+            <div className="filter-group">
+              <input
+                type="checkbox"
+                id="liked-filter"
+                checked={likedStatus}
+                onChange={(e) => setLikedStatus(e.target.checked)}
+              />
+              <label htmlFor="liked-filter">Liked</label>
+            </div>
           </div>
         </div>
-      </div>
+      </SignedIn>
 
       <h1>My Career Hub</h1>
 

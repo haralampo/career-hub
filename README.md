@@ -97,7 +97,7 @@ In a separate terminal:
 
 ```
 cd server
-npx ts-node index.ts
+npx ts-node server.ts
 ```
 
 The backend will run at:

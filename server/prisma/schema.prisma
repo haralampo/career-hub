@@ -18,5 +18,6 @@ model Job {
   date      String
   liked     Boolean  @default(false)
   aiPrep    String?
+  userId    String   // Clerk User ID
   createdAt DateTime @default(now())
 }

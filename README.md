@@ -1,72 +1,131 @@
-# React + TypeScript + Vite
+# Career Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Career Hub is a full-stack job tracking application that allows users to manage job applications through a React frontend and a Node/Express backend connected to a PostgreSQL database hosted on Neon.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Frontend:
 
-## React Compiler
+* React
+* TypeScript
+* Vite
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Backend:
 
-## Expanding the ESLint configuration
+* Node.js
+* Express
+* Prisma ORM
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Database:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* PostgreSQL (hosted on Neon)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Architecture Overview
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+Browser (React)
+   ↓ fetch()
+Express API (Node)
+   ↓ Prisma
+Neon Postgres (Cloud Database)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* React runs in the browser and sends HTTP requests using `fetch`.
+* Express defines API routes (e.g., `POST /jobs`).
+* Prisma translates JavaScript queries into SQL.
+* Neon hosts the PostgreSQL database in the cloud.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Project Structure
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+career-hub/
+  client/        # React frontend
+  server/        # Express backend
+    prisma/      # Prisma schema
+```
+
+## Environment Variables
+
+Create the following file:
+
+### server/.env
+
+```
+DATABASE_URL="your_neon_connection_string"
+OPENAI_API_KEY="your_openai_key"
+```
+
+NEVER commit `.env` files to version control.
+
+## Installation
+
+Install frontend dependencies from the root directory:
+
+```
+npm install
+```
+
+Install backend dependencies:
+
+```
+cd server
+npm install
+cd ..
+```
+
+## Running the Application (Development)
+
+You must run the frontend and backend separately.
+
+### Start Frontend (Vite)
+
+From the root directory:
+
+```
+npm run dev
+```
+
+The frontend will be available at:
+
+```
+http://localhost:5173
+```
+
+### Start Backend (Express)
+
+In a separate terminal:
+
+```
+cd server
+npx ts-node index.ts
+```
+
+The backend will run at:
+
+```
+http://localhost:4000
+```
+
+## Database Setup
+
+After configuring `DATABASE_URL` in `server/.env`:
+
+```
+cd server
+npx prisma generate
+npx prisma db push
+```
+
+This synchronizes your Prisma schema with Neon PostgreSQL.
+
+## Production Build (Frontend)
+
+To create an optimized production build of the frontend:
+
+```
+npm run build
+```
+
+This generates a `dist/` folder containing static assets.
+
+---

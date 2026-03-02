@@ -39,9 +39,9 @@ Neon Postgres (Cloud Database)
 
 ```
 career-hub/
-  client/        # React frontend
-  server/        # Express backend
-    prisma/      # Prisma schema
+├── client/        # React frontend
+└── server/        # Express backend
+    └── prisma/      # Prisma schema
 ```
 
 ## Environment Variables
@@ -103,7 +103,7 @@ npx ts-node server.ts
 The backend will run at:
 
 ```
-http://localhost:4000
+http://localhost:5001
 ```
 
 ## Database Setup

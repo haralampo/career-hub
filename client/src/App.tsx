@@ -307,7 +307,7 @@ function App() {
         <div className="top-nav">
           <header className="dashboard">
             <div className="user-profile">
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             </div>
             <span>📊 Dashboard:</span>
             <span className='stat-pill'>{totalJobs} Total</span>
@@ -343,68 +343,68 @@ function App() {
             </div>
           </div>
         </div>
-      </SignedIn>
 
-      <h1>My Career Hub</h1>
+        <h1>My Career Hub</h1>
 
-      <form onSubmit={addJob}>
-        <input
-          type="text"
-          placeholder="Company Name"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Role Title"
-          value={roleTitle}
-          onChange={(e) => setRoleTitle(e.target.value)}
-        />
-        <input
-          type="date"
-          value={appliedDate}
-          onChange={(e) => setAppliedDate(e.target.value)}
-        />
-        <select className='select-form' value={statusChoice}
-          onChange={(e) => setStatusChoice(e.target.value as JobStatus)}>
-          <option value="Applied">Applied</option>
-          <option value="Interviewing">Interviewing</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Offered">Offered</option>
-        </select>
-        <button className="btn-add">Add Job</button>
-      </form>
+        <form onSubmit={addJob}>
+          <input
+            type="text"
+            placeholder="Company Name"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Role Title"
+            value={roleTitle}
+            onChange={(e) => setRoleTitle(e.target.value)}
+          />
+          <input
+            type="date"
+            value={appliedDate}
+            onChange={(e) => setAppliedDate(e.target.value)}
+          />
+          <select className='select-form' value={statusChoice}
+            onChange={(e) => setStatusChoice(e.target.value as JobStatus)}>
+            <option value="Applied">Applied</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Offered">Offered</option>
+          </select>
+          <button className="btn-add">Add Job</button>
+        </form>
 
-      <div className='jobs-container'>
-        {jobs.length === 0 ? (
-          <div className="empty-state">🚀 No jobs tracked yet. Time to apply!</div>
-        ) : filteredJobs.length === 0 ? (
-          <div className="empty-state">🔍 No results found matching your search.</div>
-        ) : (
-          filteredJobs.map(job => (
-            <JobCard
-              key={job.id}
-              job={job}
-              onDelete={deleteJob}
-              onUpdateStatus={updateStatus}
-              onLike={updateLikedStatus}
-              onGenerateAI={generateAIPrep}
-            />
-          ))
-        )}
-      </div>
-
-      {showSuccess && (
-        <div className="success-toast">
-          ✅ Job added!
+        <div className='jobs-container'>
+          {jobs.length === 0 ? (
+            <div className="empty-state">🚀 No jobs tracked yet. Time to apply!</div>
+          ) : filteredJobs.length === 0 ? (
+            <div className="empty-state">🔍 No results found matching your search.</div>
+          ) : (
+            filteredJobs.map(job => (
+              <JobCard
+                key={job.id}
+                job={job}
+                onDelete={deleteJob}
+                onUpdateStatus={updateStatus}
+                onLike={updateLikedStatus}
+                onGenerateAI={generateAIPrep}
+              />
+            ))
+          )}
         </div>
-      )}
 
-      <footer>
-        <button type="button" className="btn-reset" onClick={resetDashboard}>
-          Reset Dashboard
-        </button>
-      </footer>
+        {showSuccess && (
+          <div className="success-toast">
+            ✅ Job added!
+          </div>
+        )}
+
+        <footer>
+          <button type="button" className="btn-reset" onClick={resetDashboard}>
+            Reset Dashboard
+          </button>
+        </footer>
+      </SignedIn>
     </div>
   );
 }
